@@ -70,7 +70,7 @@ const ERR = IOS.red;      // errors only
 const OK  = ACC;
 
 const DA  = { D1:ACC, D2:ACC, D3:ACC, D4:ACC };
-const CAT = { Arms:ACC, Legs:ACC, Pull:ACC, Chest:ACC, Delts:ACC, Core:ACC };;
+const CAT = { Arms:ACC, Legs:ACC, Pull:ACC, Chest:ACC, Delts:ACC, Core:ACC };
 
 // ─── Program data (unchanged) ─────────────────────────────────────────────────
 const T1_STAGES = [
@@ -117,6 +117,33 @@ const DAYS = [
     ]},
 ];
 
+// ─── Exercise alternatives library ───────────────────────────────────────────
+// Key = default exercise name, value = array of alternatives (same movement pattern)
+const ALTS = {
+  // T1 primary lifts
+  "Squat":           ["Front Squat","Box Squat","Safety Bar Squat","Goblet Squat","Hack Squat"],
+  "Bench Press":     ["Close Grip Bench","DB Bench Press","Incline Bench Press","Floor Press","DB Floor Press"],
+  "Deadlift":        ["Trap Bar Deadlift","Sumo Deadlift","Romanian Deadlift","Rack Pull","DB Deadlift"],
+  "Overhead Press":  ["DB Overhead Press","Push Press","Seated OHP","Arnold Press","Z-Press"],
+  // T2 volume lifts
+  "Romanian Deadlift":    ["Stiff Leg Deadlift","Good Morning","Nordic Curl","Glute Ham Raise","Cable Pull-Through"],
+  "Incline Bench Press":  ["DB Incline Press","Incline DB Fly","Cable Fly","Pec Deck","Dips"],
+  "Barbell Row":          ["DB Row","Cable Row","T-Bar Row","Chest-Supported Row","Machine Row"],
+  "Close Grip Bench":     ["Tricep Dips","DB Skull Crusher","Cable Pushdown","JM Press","Diamond Push-Up"],
+  // T3 accessories
+  "Leg Extension":        ["Leg Press","Sissy Squat","Spanish Squat","Step-Up","Lunge"],
+  "Chest-Supported Row":  ["Cable Row","DB Row","Machine Row","Seal Row","Band Pull-Apart"],
+  "Decline Sit-Up":       ["Cable Crunch","Hanging Knee Raise","Ab Wheel","Dragon Flag","Plank"],
+  "Overhead Tricep Ext":  ["Tricep Pushdown","Skull Crusher","Dips","Cable Overhead Ext","DB Kickback"],
+  "Lateral Raise":        ["Cable Lateral Raise","DB Lateral Raise","Machine Lateral Raise","Face Pull","Band Pull-Apart"],
+  "Bicep Curl":           ["Hammer Curl","Incline DB Curl","Cable Curl","Preacher Curl","Concentration Curl"],
+  "Leg Press":            ["Hack Squat","Belt Squat","DB Squat","Bulgarian Split Squat","Step-Up"],
+  "Lat Pulldown":         ["Pull-Up","Assisted Pull-Up","Cable Row","DB Row","Machine Row"],
+  "Leg Curl":             ["Romanian Deadlift","Nordic Curl","Glute Ham Raise","Cable Pull-Through","DB Leg Curl"],
+  "Incline DB Press":     ["Cable Fly","Pec Deck","DB Fly","Incline Bench Press","Push-Up"],
+  "Tricep Pushdown":      ["Overhead Tricep Ext","Skull Crusher","Dips","Close Grip Bench","Diamond Push-Up"],
+  "Bicep Curl (Cable)":   ["DB Curl","Hammer Curl","Preacher Curl","Incline DB Curl","Concentration Curl"],
+};
 const DEF_T1TM = { Squat:225,"Bench Press":155,Deadlift:275,"Overhead Press":95 };
 const DEF_T2TM = { "Romanian Deadlift":135,"Incline Bench Press":95,"Barbell Row":115,"Close Grip Bench":95 };
 const DEF_T3W  = {
@@ -369,7 +396,85 @@ function RestSheet({ timer }) {
   );
 }
 
-// ─── iOS Tab Bar ──────────────────────────────────────────────────────────────
+// ─── Exercise Swap Sheet ──────────────────────────────────────────────────────
+function SwapSheet({ slotKey, currentName, defaultName, onSwap, onClose }) {
+  const alts = ALTS[defaultName] || [];
+  const [custom, setCustom] = useState("");
+
+  const doSwap = (name) => { onSwap(slotKey, name); onClose(); };
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:500, display:"flex",
+      flexDirection:"column", justifyContent:"flex-end",
+      background:"rgba(0,0,0,0.6)", backdropFilter:"blur(8px)" }}
+      onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:IOS.bg2, borderRadius:"24px 24px 0 0",
+        paddingBottom:"max(20px,env(safe-area-inset-bottom))",
+        animation:"sheetIn .3s cubic-bezier(.4,0,.2,1) both",
+        maxHeight:"80vh", overflowY:"auto" }}>
+
+        {/* Handle */}
+        <div style={{display:"flex",justifyContent:"center",padding:"12px 0 4px"}}>
+          <div style={{width:36,height:5,borderRadius:99,background:IOS.bg4}}/>
+        </div>
+
+        {/* Header */}
+        <div style={{padding:"8px 20px 16px",borderBottom:`0.5px solid ${IOS.sep}`}}>
+          <div style={{fontSize:13,color:IOS.label3,textTransform:"uppercase",letterSpacing:.5,marginBottom:2}}>
+            Swap Exercise
+          </div>
+          <div style={{fontSize:20,fontWeight:700,color:IOS.label}}>{defaultName}</div>
+          {currentName!==defaultName&&(
+            <div style={{fontSize:13,color:ACC,marginTop:4}}>Currently: {currentName}</div>
+          )}
+        </div>
+
+        {/* Restore default */}
+        {currentName!==defaultName&&(
+          <button className="ios-press" onClick={()=>doSwap(defaultName)} style={{
+            width:"100%",padding:"14px 20px",display:"flex",justifyContent:"space-between",
+            alignItems:"center",background:"transparent",
+            borderBottom:`0.5px solid ${IOS.sep}` }}>
+            <span style={{fontSize:17,color:ACC,fontWeight:500}}>↩ Restore default ({defaultName})</span>
+          </button>
+        )}
+
+        {/* Alternatives */}
+        {alts.map((name,i)=>{
+          const isCurrent = name===currentName;
+          return (
+            <button key={i} className="ios-press" onClick={()=>doSwap(name)} style={{
+              width:"100%",padding:"14px 20px",display:"flex",justifyContent:"space-between",
+              alignItems:"center",background:isCurrent?`${ACC}15`:"transparent",
+              borderBottom:i<alts.length-1?`0.5px solid ${IOS.sep}`:"none" }}>
+              <span style={{fontSize:17,color:isCurrent?ACC:IOS.label}}>{name}</span>
+              {isCurrent&&<span style={{fontSize:15,color:ACC}}>✓</span>}
+            </button>
+          );
+        })}
+
+        {/* Custom exercise input */}
+        <div style={{padding:"16px 20px",borderTop:`0.5px solid ${IOS.sep}`}}>
+          <div style={{fontSize:13,color:IOS.label3,marginBottom:8,textTransform:"uppercase",letterSpacing:.5}}>
+            Custom exercise
+          </div>
+          <div style={{display:"flex",gap:10}}>
+            <input value={custom} onChange={e=>setCustom(e.target.value)}
+              placeholder="Type any exercise name…"
+              style={{flex:1,background:IOS.bg3,borderRadius:10,padding:"10px 14px",
+                fontSize:16,color:IOS.label,border:`1px solid ${IOS.sep}`}}/>
+            <button className="ios-press" onClick={()=>{ if(custom.trim()) doSwap(custom.trim()); }}
+              style={{background:ACC,color:"#000",borderRadius:10,padding:"10px 18px",
+                fontSize:16,fontWeight:600}}>
+              Use
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 const TAB_ICONS = {
   workout: (a) => (
     <svg width="25" height="25" viewBox="0 0 25 25" fill="none">
@@ -428,7 +533,7 @@ function TabBar({ screen, go }) {
 }
 
 // ─── Giant Set Logger ─────────────────────────────────────────────────────────
-function GiantSetLogger({ exercises, t3states, onWeightChange, rounds, onRoundsChange, timerStart }) {
+function GiantSetLogger({ exercises, t3states, onWeightChange, onSwap, rounds, onRoundsChange, timerStart }) {
   const nEx=exercises.length, maxRounds=4;
   const totals=exercises.map((_,ei)=>rounds.reduce((s,r)=>s+(parseInt(r[ei])||0),0));
 
@@ -454,15 +559,22 @@ function GiantSetLogger({ exercises, t3states, onWeightChange, rounds, onRoundsC
                 <div style={{ width:10, height:10, borderRadius:5, background:cc, flexShrink:0 }}/>
                 {/* Name + meta */}
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:17, fontWeight:500,
-                    color:done?C3:IOS.label,
-                    overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                    {ex.name}
+                  <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"nowrap" }}>
+                    <span style={{ fontSize:17, fontWeight:500,
+                      color:done?C3:IOS.label,
+                      overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {ex.name}
+                    </span>
+                    {ex.isSwapped&&<span style={{fontSize:11,color:ACC,fontWeight:600,background:`${ACC}20`,borderRadius:6,padding:"2px 6px",flexShrink:0}}>swapped</span>}
                   </div>
-                  <div style={{ fontSize:13, color:IOS.label3, marginTop:1 }}>
-                    Stage {st.stage+1} · {tgt} reps target
-                    {ex.bw?" · Bodyweight":""}
-                    {st.lastSets?" · prev "+st.lastSets+" rounds":""}
+                  <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:2 }}>
+                    <span style={{ fontSize:13, color:IOS.label3 }}>
+                      Stage {st.stage+1} · {tgt} reps target{ex.bw?" · Bodyweight":""}
+                    </span>
+                    <button className="ios-press" onClick={()=>onSwap&&onSwap(ei)}
+                      style={{fontSize:12,color:ACC,fontWeight:600,background:`${ACC}18`,borderRadius:6,padding:"2px 8px",flexShrink:0}}>
+                      Swap
+                    </button>
                   </div>
                 </div>
                 {/* Compact stepper */}
@@ -593,6 +705,8 @@ export default function App() {
   const [done,       setDone]       = useState(false);
   const [hist,       setHist]       = useState([]);
   const [firstVisit, setFirstVisit] = useState(true);
+  const [swaps,      setSwaps]      = useState({});   // { "D1.t1":"Front Squat", "D1.t3.0":"Hack Squat" }
+  const [swapSheet,  setSwapSheet]  = useState(null); // { slotKey, currentName, defaultName }
   const timer = useTimer();
 
   const sv=useCallback((k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}},[]);
@@ -600,17 +714,27 @@ export default function App() {
 
   useEffect(()=>{
     (async()=>{
-      const [sc,t1,t2,t3,di,hi]=await Promise.all(["screen","t1s","t2s","t3s","dayIdx","hist"].map(ld));
+      const [sc,t1,t2,t3,di,hi,sw]=await Promise.all(["screen","t1s","t2s","t3s","dayIdx","hist","swaps"].map(ld));
       if(sc){setScreen(sc);setFirstVisit(false);}
       if(t1)setT1s(t1); if(t2)setT2s(t2); if(t3)setT3s(t3);
       const d=di!=null?di:0; if(di!=null)setDayIdx(d); setViewDay(d);
-      if(hi)setHist(hi); setReady(true);
+      if(hi)setHist(hi); if(sw)setSwaps(sw); setReady(true);
     })();
   },[ld]);
 
+  // Resolve active exercise name for a slot — must be defined before day/t1lift/t2lift
+  const slotName = (dayId, tier, idx=null) => {
+    const key = idx===null ? `${dayId}.${tier}` : `${dayId}.${tier}.${idx}`;
+    return swaps[key] || (
+      tier==="t1" ? DAYS.find(d=>d.id===dayId).t1.name :
+      tier==="t2" ? DAYS.find(d=>d.id===dayId).t2.name :
+      DAYS.find(d=>d.id===dayId).t3[idx].name
+    );
+  };
+
   const day=DAYS[viewDay], isCurrentDay=viewDay===dayIdx, dacc=DA[day.id];
-  const t1lift=t1s[day.t1.name]||{weight:135,stage:0,lastAmrap:null,tm:150};
-  const t2lift=t2s[day.t2.name]||{weight:95,stage:0,tm:110};
+  const t1lift=t1s[slotName(day.id,"t1")]||{weight:135,stage:0,lastAmrap:null,tm:150};
+  const t2lift=t2s[slotName(day.id,"t2")]||{weight:95,stage:0,tm:110};
   const t1cfg=T1_STAGES[Math.min(t1lift.stage||0, T1_STAGES.length-1)];
   const t2cfg=T2_STAGES[Math.min(t2lift.stage||0, T2_STAGES.length-1)];
   const inc1=day.isLower?10:5, amrapN=parseInt(amrap)||0;
@@ -619,39 +743,60 @@ export default function App() {
   const amrapStall=amrap!==""&&(amrapBelowMin||(t1lift.lastAmrap!==null&&amrapN<=t1lift.lastAmrap));
   const amrapPass=amrap!==""&&!amrapStall;
 
+  const handleSwap = (slotKey, newName) => {
+    const ns = {...swaps, [slotKey]: newName};
+    setSwaps(ns); sv("swaps", ns);
+    if (slotKey.includes(".t3.")) { setGsRounds(emptyRounds(day.t3.length)); setSets({}); }
+    if (slotKey.includes(".t1")) { setAmrap(""); setSets({}); }
+    if (slotKey.includes(".t2")) { setSets({}); }
+  };
+
+  const openSwap = (dayId, tier, idx=null) => {
+    const key = idx===null ? `${dayId}.${tier}` : `${dayId}.${tier}.${idx}`;
+    const defaultName = idx===null
+      ? DAYS.find(d=>d.id===dayId)[tier].name
+      : DAYS.find(d=>d.id===dayId).t3[idx].name;
+    setSwapSheet({ slotKey:key, currentName:slotName(dayId,tier,idx), defaultName });
+  };
+
+  // Active exercise names for current viewed day
+  const t1Name = slotName(day.id, "t1");
+  const t2Name = slotName(day.id, "t2");
   const toggle=k=>setSets(p=>({...p,[k]:!p[k]}));
   const gsTotal=ei=>gsRounds.reduce((s,r)=>s+(parseInt(r[ei])||0),0);
   const gsSets=ei=>gsRounds.filter(r=>parseInt(r[ei])>0).length;
 
   const complete=async()=>{
     const nt1={...t1s},nt2={...t2s},nt3={...t3s};
-    const c1={...nt1[day.t1.name]},c2={...nt2[day.t2.name]};
+    const c1={...nt1[t1Name]||{weight:135,stage:0,lastAmrap:null,tm:150,stageWeights:[null,null,null]}};
+    const c2={...nt2[t2Name]||{weight:95,stage:0,tm:110,stageWeights:[null,null,null]}};
     c1.stageWeights=[...(c1.stageWeights||[null,null,null])];
     c2.stageWeights=[...(c2.stageWeights||[null,null,null])];
-    const nextT1W=(toStage,cur,inc)=>{const sv=c1.stageWeights[toStage];return sv!==null?r5(sv+inc,inc):r5(cur+inc,inc);};
+    const nextT1W=(toStage,cur,inc)=>{const savedW=c1.stageWeights[toStage];return savedW!==null?r5(savedW+inc,inc):r5(cur+inc,inc);};
     if(amrapStall){
       c1.stageWeights[c1.stage]=c1.weight;
       const ns=c1.stage<2?c1.stage+1:0;
       c1.weight=nextT1W(ns,c1.weight,inc1); c1.stage=ns; c1.lastAmrap=null;
     } else { c1.weight+=inc1; c1.lastAmrap=amrapN; }
-    nt1[day.t1.name]=c1;
-    if(!t2Advanced){c2.weight+=5;} nt2[day.t2.name]=c2;
+    nt1[t1Name]=c1;
+    if(!t2Advanced){c2.weight+=5;} nt2[t2Name]=c2;
     day.t3.forEach((t,ei)=>{
-      const ex={...nt3[t.name]};
+      const activeName=slotName(day.id,"t3",ei);
+      const ex={...nt3[activeName]||{weight:40,stage:0,lastSets:null,stageWeights:[null,null,null]}};
       ex.stageWeights=[...(ex.stageWeights||[null,null,null])];
       const used=gsSets(ei),tot=gsTotal(ei),tgt=T3_TARGETS[ex.stage];
       if(tot>=tgt){
         ex.lastSets=used;
         if(used<=2){
           ex.stageWeights[ex.stage]=ex.weight;
-          if(ex.stage<2){const sv=ex.stageWeights[ex.stage+1];ex.weight=sv!==null?r5(sv+5):r5(ex.weight+5);ex.stage+=1;}
-          else{const sv=ex.stageWeights[0];ex.weight=sv!==null?r5(sv+10):r5(ex.weight+10);ex.stage=0;}
+          if(ex.stage<2){const savedW=ex.stageWeights[ex.stage+1];ex.weight=savedW!==null?r5(savedW+5):r5(ex.weight+5);ex.stage+=1;}
+          else{const savedW=ex.stageWeights[0];ex.weight=savedW!==null?r5(savedW+10):r5(ex.weight+10);ex.stage=0;}
         }
       }
-      nt3[t.name]=ex;
+      nt3[activeName]=ex;
     });
     const entry={date:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"}),
-      day:day.id,dayName:day.t1.name,t1w:t1lift.weight,t1stage:t1lift.stage,
+      day:day.id,dayName:t1Name,t1w:t1lift.weight,t1stage:t1lift.stage,
       amrap:amrapN,lastAmrap:t1lift.lastAmrap,stalled:amrapStall,t2w:t2lift.weight,t2stage:t2lift.stage};
     const nh=[entry,...hist.slice(0,49)],nd=(dayIdx+1)%4;
     setT1s(nt1);setT2s(nt2);setT3s(nt3);setHist(nh);
@@ -663,7 +808,7 @@ export default function App() {
   };
 
   const advanceT2=async()=>{
-    const k=day.t2.name,c={...t2s[k]};
+    const k=t2Name, c={...t2s[k]||{weight:95,stage:0,tm:110,stageWeights:[null,null,null]}};
     c.stageWeights=[...(c.stageWeights||[null,null,null])];
     c.stageWeights[c.stage]=c.weight;
     const ns=c.stage<2?c.stage+1:0;
@@ -675,8 +820,12 @@ export default function App() {
   const go=s=>{setScreen(s);if(s!=="workout")setDone(false);};
   const goWorkout=()=>{setViewDay(dayIdx);go("workout");};
 
-  const page={minHeight:"100vh",background:IOS.bg,color:IOS.label,paddingBottom:90};
-  const body={maxWidth:460,margin:"0 auto",padding:"0 16px 32px"};
+  const page={minHeight:"100vh",background:IOS.bg,color:IOS.label,
+    paddingTop:"env(safe-area-inset-top)",
+    paddingBottom:"calc(90px + env(safe-area-inset-bottom))",
+    paddingLeft:"env(safe-area-inset-left)",
+    paddingRight:"env(safe-area-inset-right)"};
+  const body={maxWidth:460,margin:"0 auto",padding:"0 20px 32px"};
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if(!ready) return (
@@ -690,7 +839,7 @@ export default function App() {
   // ── SETUP ──────────────────────────────────────────────────────────────────
   if(screen==="setup"){
     const launch=async()=>{setScreen("workout");setViewDay(dayIdx);setDone(false);setFirstVisit(false);
-      sv("screen","workout");sv("t1s",t1s);sv("t2s",t2s);sv("t3s",t3s);};;
+      sv("screen","workout");sv("t1s",t1s);sv("t2s",t2s);sv("t3s",t3s);};
     return (
       <div style={page}><style>{GS}</style>
       <div style={{...body,paddingTop:24}}>
@@ -880,7 +1029,7 @@ export default function App() {
 
   // ── POST DONE ─────────────────────────────────────────────────────────────
   if(screen==="workout"&&done){
-    const last=hist[0],nd=DAYS[dayIdx],nt1=t1s[nd.t1.name]||{weight:135,stage:0};
+    const last=hist[0],nd=DAYS[dayIdx],ndT1Name=slotName(nd.id,"t1"),nt1=t1s[ndT1Name]||{weight:135,stage:0};
     return (
       <div style={page}><style>{GS}</style>
       <div style={{...body,paddingTop:48}}>
@@ -906,7 +1055,7 @@ export default function App() {
               <span style={{fontSize:15,color:IOS.label3}}>{nd.theme}</span>
             </div>
             <div style={{fontSize:15,color:IOS.label2}}>
-              T1: {nd.t1.name} · <span style={{fontFamily:"ui-monospace,'SF Mono',monospace",color:IOS.label}}>{nt1.weight} lb</span> · {T1_STAGES[nt1.stage]?.label}
+              T1: {ndT1Name} · <span style={{fontFamily:"ui-monospace,'SF Mono',monospace",color:IOS.label}}>{nt1.weight} lb</span> · {T1_STAGES[Math.min(nt1.stage||0,T1_STAGES.length-1)]?.label}
             </div>
           </Row>
         </Section>
@@ -954,9 +1103,16 @@ export default function App() {
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
               <TierBadge tier="T1"/>
-              <span style={{fontSize:22,fontWeight:700,color:IOS.label,letterSpacing:-.3}}>{day.t1.name}</span>
+              <span style={{fontSize:22,fontWeight:700,color:IOS.label,letterSpacing:-.3}}>{t1Name}</span>
+              {t1Name!==day.t1.name&&<span style={{fontSize:11,color:ACC,fontWeight:600,background:`${ACC}20`,borderRadius:6,padding:"2px 7px"}}>swapped</span>}
             </div>
-            {!isPreview&&<TimerBtn secs={REST.T1_work} start={timer.start}/>}
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              {!isPreview&&<button className="ios-press" onClick={()=>openSwap(day.id,"t1")}
+                style={{fontSize:13,color:ACC,fontWeight:600,background:`${ACC}18`,borderRadius:8,padding:"5px 12px"}}>
+                Swap
+              </button>}
+              {!isPreview&&<TimerBtn secs={REST.T1_work} start={timer.start}/>}
+            </div>
           </div>
           <div style={{fontSize:14,color:IOS.label3}}>{t1cfg.label} · +{inc1} lb/session</div>
           <StageSegment stage={t1lift.stage} color={C1}/>
@@ -964,7 +1120,7 @@ export default function App() {
           {!isPreview&&(
             <>
               <Stepper val={t1lift.weight} inc={inc1} color={C1}
-                onChange={v=>setT1s(p=>({...p,[day.t1.name]:{...p[day.t1.name],weight:v}}))}/>
+                onChange={v=>setT1s(p=>({...p,[t1Name]:{...p[t1Name],weight:v}}))}/>
 
               {/* Work sets */}
               <div style={{marginTop:18,paddingTop:16,borderTop:`0.5px solid ${IOS.sep}`}}>
@@ -1013,7 +1169,7 @@ export default function App() {
               <div style={{marginTop:16,paddingTop:14,borderTop:`0.5px solid ${IOS.sep}`}}>
                 <div style={{fontSize:14,color:IOS.label3,marginBottom:10}}>Adjust Training Max</div>
                 <Stepper val={t1lift.tm||150} inc={inc1} color={IOS.label3}
-                  onChange={v=>setT1s(p=>({...p,[day.t1.name]:{...p[day.t1.name],tm:v}}))}/>
+                  onChange={v=>setT1s(p=>({...p,[t1Name]:{...p[t1Name],tm:v}}))}/>
               </div>
             </>
           )}
@@ -1026,9 +1182,16 @@ export default function App() {
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
               <TierBadge tier="T2"/>
-              <span style={{fontSize:22,fontWeight:700,color:IOS.label,letterSpacing:-.3}}>{day.t2.name}</span>
+              <span style={{fontSize:22,fontWeight:700,color:IOS.label,letterSpacing:-.3}}>{t2Name}</span>
+              {t2Name!==day.t2.name&&<span style={{fontSize:11,color:ACC,fontWeight:600,background:`${ACC}20`,borderRadius:6,padding:"2px 7px"}}>swapped</span>}
             </div>
-            {!isPreview&&<TimerBtn secs={REST.T2} start={timer.start}/>}
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              {!isPreview&&<button className="ios-press" onClick={()=>openSwap(day.id,"t2")}
+                style={{fontSize:13,color:ACC,fontWeight:600,background:`${ACC}18`,borderRadius:8,padding:"5px 12px"}}>
+                Swap
+              </button>}
+              {!isPreview&&<TimerBtn secs={REST.T2} start={timer.start}/>}
+            </div>
           </div>
           <div style={{fontSize:14,color:IOS.label3,marginBottom:2}}>{t2cfg.label} · No AMRAP · +5 lb/session</div>
           <StageSegment stage={t2lift.stage} color={C2}/>
@@ -1036,7 +1199,7 @@ export default function App() {
           {!isPreview&&(
             <>
               <Stepper val={t2lift.weight} inc={5} color={C2}
-                onChange={v=>setT2s(p=>({...p,[day.t2.name]:{...p[day.t2.name],weight:v}}))}/>
+                onChange={v=>setT2s(p=>({...p,[t2Name]:{...p[t2Name],weight:v}}))}/>
               <div style={{marginTop:16,paddingTop:16,borderTop:`0.5px solid ${IOS.sep}`}}>
                 <div style={{fontSize:15,fontWeight:600,color:IOS.label2,marginBottom:12}}>
                   {t2cfg.sets} Sets × {t2cfg.reps} Reps
@@ -1059,23 +1222,25 @@ export default function App() {
       <SectionLabel accent={C3}>T3 — Giant Set Accessories</SectionLabel>
       {!isPreview ? (
         <GiantSetLogger
-          exercises={day.t3}
-          t3states={day.t3.map(t=>t3s[t.name]||{weight:40,stage:0,stageWeights:[null,null,null]})}
+          exercises={day.t3.map((t,ei)=>({...t, name:slotName(day.id,"t3",ei), defaultName:t.name, isSwapped:slotName(day.id,"t3",ei)!==t.name}))}
+          t3states={day.t3.map((t,ei)=>t3s[slotName(day.id,"t3",ei)]||{weight:40,stage:0,stageWeights:[null,null,null]})}
           onWeightChange={(name,val)=>setT3s(p=>({...p,[name]:{...p[name],weight:val}}))}
+          onSwap={(ei)=>openSwap(day.id,"t3",ei)}
           rounds={gsRounds}
           onRoundsChange={r=>setGsRounds(r)}
           timerStart={timer.start}/>
       ) : (
         <Section>
           {day.t3.map((t,i)=>{
-            const ex=t3s[t.name]||{weight:40,stage:0};
+            const activeName=slotName(day.id,"t3",i);
+            const ex=t3s[activeName]||{weight:40,stage:0};
             const cc=CAT[t.cat]||C3;
             const isLast=i===day.t3.length-1;
             return (
               <Row key={t.name} sep={!isLast}>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <div style={{width:10,height:10,borderRadius:5,background:cc}}/>
-                  <span style={{fontSize:17,color:IOS.label,flex:1}}>{t.name}</span>
+                  <span style={{fontSize:17,color:IOS.label,flex:1}}>{activeName}</span>
                   <span style={{fontSize:14,color:IOS.label3}}>Stage {ex.stage+1} · {T3_TARGETS[ex.stage]}r</span>
                   {!t.bw&&<span style={{fontFamily:"ui-monospace,'SF Mono',monospace",fontSize:15,fontWeight:600,color:IOS.label}}>{ex.weight} lb</span>}
                 </div>
@@ -1102,6 +1267,14 @@ export default function App() {
     </div>
     <TabBar screen={screen} go={s=>{if(s==="workout")goWorkout();else go(s);}}/>
     <RestSheet timer={timer}/>
+    {swapSheet&&(
+      <SwapSheet
+        slotKey={swapSheet.slotKey}
+        currentName={swapSheet.currentName}
+        defaultName={swapSheet.defaultName}
+        onSwap={handleSwap}
+        onClose={()=>setSwapSheet(null)}/>
+    )}
     </div>
   );
 }
