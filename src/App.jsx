@@ -211,8 +211,8 @@ function Section({ label, children, style={} }) {
 function Row({ children, sep=true, style={} }) {
   return (
     <div style={{ position:"relative", ...style }}>
-      <div style={{ padding:"12px 16px" }}>{children}</div>
-      {sep && <div style={{ position:"absolute", bottom:0, left:16, right:0,
+      <div style={{ padding:"12px 20px" }}>{children}</div>
+      {sep && <div style={{ position:"absolute", bottom:0, left:20, right:0,
         height:"0.5px", background:IOS.sep }}/>}
     </div>
   );
@@ -263,23 +263,22 @@ function WeightDisplay({ value, color=IOS.label }) {
 function Stepper({ val, onChange, inc=5, color=IOS.label }) {
   const adj=d=>onChange(Math.max(0,r5(val+d,inc)));
   return (
-    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+    <div style={{ display:"flex", alignItems:"center", gap:6 }}>
       <button className="ios-press" onClick={()=>adj(-inc)} style={{
-        width:44, height:44, borderRadius:22, background:IOS.bg3,
-        color:color, fontSize:24, display:"flex", alignItems:"center", justifyContent:"center",
+        width:32, height:32, borderRadius:16, background:IOS.bg3,
+        color:color, fontSize:18, display:"flex", alignItems:"center", justifyContent:"center",
         flexShrink:0 }}>−</button>
       <input type="number" inputMode="decimal" value={val}
         onChange={e=>onChange(parseFloat(e.target.value)||0)}
         style={{ flex:1, textAlign:"center",
           fontFamily:"ui-monospace,'SF Mono',monospace",
-          fontSize:20, fontWeight:600, color,
-          background:IOS.bg3, borderRadius:10, padding:"10px 0",
+          fontSize:18, fontWeight:600, color,
+          background:IOS.bg3, borderRadius:8, padding:"7px 0",
           border:`1px solid ${IOS.sep}` }}/>
       <button className="ios-press" onClick={()=>adj(inc)} style={{
-        width:44, height:44, borderRadius:22, background:IOS.bg3,
-        color:color, fontSize:24, display:"flex", alignItems:"center", justifyContent:"center",
+        width:32, height:32, borderRadius:16, background:IOS.bg3,
+        color:color, fontSize:18, display:"flex", alignItems:"center", justifyContent:"center",
         flexShrink:0 }}>+</button>
-      <span style={{ fontSize:15, color:IOS.label3, flexShrink:0 }}>lb</span>
     </div>
   );
 }
@@ -554,50 +553,48 @@ function GiantSetLogger({ exercises, t3states, onWeightChange, onSwap, rounds, o
           const isLast=ei===exercises.length-1;
           return (
             <Row key={ei} sep={!isLast} style={{ background:done?`${C3}0F`:undefined }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                {/* Color dot */}
-                <div style={{ width:10, height:10, borderRadius:5, background:cc, flexShrink:0 }}/>
-                {/* Name + meta */}
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"nowrap" }}>
-                    <span style={{ fontSize:17, fontWeight:500,
-                      color:done?C3:IOS.label,
-                      overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                      {ex.name}
-                    </span>
-                    {ex.isSwapped&&<span style={{fontSize:11,color:ACC,fontWeight:600,background:`${ACC}20`,borderRadius:6,padding:"2px 6px",flexShrink:0}}>swapped</span>}
-                  </div>
-                  <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:2 }}>
-                    <span style={{ fontSize:13, color:IOS.label3 }}>
-                      Stage {st.stage+1} · {tgt} reps target{ex.bw?" · Bodyweight":""}
-                    </span>
-                    <button className="ios-press" onClick={()=>onSwap&&onSwap(ei)}
-                      style={{fontSize:12,color:ACC,fontWeight:600,background:`${ACC}18`,borderRadius:6,padding:"2px 8px",flexShrink:0}}>
-                      Swap
-                    </button>
-                  </div>
-                </div>
-                {/* Compact stepper */}
-                {!ex.bw ? (
-                  <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
-                    <button className="ios-press" onClick={()=>onWeightChange(ex.name,Math.max(0,r5(st.weight-5)))}
-                      style={{ width:32,height:32,borderRadius:16,background:IOS.bg3,
-                        color:IOS.label,fontSize:20,display:"flex",alignItems:"center",justifyContent:"center" }}>−</button>
-                    <span style={{ fontFamily:"ui-monospace,'SF Mono',monospace",
-                      fontSize:15,fontWeight:600,color:IOS.label,minWidth:36,textAlign:"center" }}>{st.weight}</span>
-                    <button className="ios-press" onClick={()=>onWeightChange(ex.name,r5(st.weight+5))}
-                      style={{ width:32,height:32,borderRadius:16,background:IOS.bg3,
-                        color:IOS.label,fontSize:20,display:"flex",alignItems:"center",justifyContent:"center" }}>+</button>
-                    <span style={{ fontSize:13,color:IOS.label3 }}>lb</span>
-                  </div>
-                ) : null}
-                {/* Counter */}
-                <div style={{ fontFamily:"ui-monospace,'SF Mono',monospace",
-                  fontSize:15, fontWeight:600, color:done?C3:IOS.label2, minWidth:42, textAlign:"right", flexShrink:0 }}>
+              {/* Row 1: name + counter */}
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
+                <div style={{ width:8, height:8, borderRadius:4, background:cc, flexShrink:0 }}/>
+                <span style={{ fontSize:17, fontWeight:600, color:done?C3:IOS.label, flex:1, minWidth:0 }}>
+                  {ex.name}
+                </span>
+                {ex.isSwapped&&(
+                  <span style={{fontSize:11,color:ACC,fontWeight:600,background:`${ACC}20`,
+                    borderRadius:6,padding:"2px 6px",flexShrink:0}}>swapped</span>
+                )}
+                <span style={{ fontFamily:"ui-monospace,'SF Mono',monospace",
+                  fontSize:14, fontWeight:600, color:done?C3:IOS.label3, flexShrink:0 }}>
                   {tot}/{tgt}
-                </div>
+                </span>
               </div>
-              {/* Mini progress bar */}
+              {/* Row 2: stage info + swap + stepper */}
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ fontSize:13, color:IOS.label3, flex:1, minWidth:0 }}>
+                  Stage {st.stage+1} · {tgt} reps{ex.bw?" · BW":""}
+                </span>
+                <button className="ios-press" onClick={()=>onSwap&&onSwap(ei)}
+                  style={{fontSize:12,color:ACC,fontWeight:600,background:`${ACC}18`,
+                    borderRadius:6,padding:"3px 10px",flexShrink:0}}>
+                  Swap
+                </button>
+                {!ex.bw && (
+                  <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
+                    <button className="ios-press"
+                      onClick={()=>onWeightChange(ex.name,Math.max(0,r5(st.weight-5)))}
+                      style={{ width:30,height:30,borderRadius:15,background:IOS.bg3,
+                        color:IOS.label,fontSize:18,display:"flex",alignItems:"center",justifyContent:"center" }}>−</button>
+                    <span style={{ fontFamily:"ui-monospace,'SF Mono',monospace",
+                      fontSize:15,fontWeight:600,color:IOS.label,minWidth:34,textAlign:"center" }}>{st.weight}</span>
+                    <button className="ios-press"
+                      onClick={()=>onWeightChange(ex.name,r5(st.weight+5))}
+                      style={{ width:30,height:30,borderRadius:15,background:IOS.bg3,
+                        color:IOS.label,fontSize:18,display:"flex",alignItems:"center",justifyContent:"center" }}>+</button>
+                    <span style={{ fontSize:12,color:IOS.label3 }}>lb</span>
+                  </div>
+                )}
+              </div>
+              {/* Progress bar */}
               <div style={{ height:3, background:IOS.bg4, borderRadius:99, marginTop:8, overflow:"hidden" }}>
                 <div style={{ height:"100%", width:`${Math.min(tot/tgt,1)*100}%`,
                   background:done?C3:ACC, borderRadius:99, transition:"width .2s" }}/>
@@ -825,7 +822,7 @@ export default function App() {
     paddingBottom:"calc(90px + env(safe-area-inset-bottom))",
     paddingLeft:"env(safe-area-inset-left)",
     paddingRight:"env(safe-area-inset-right)"};
-  const body={maxWidth:460,margin:"0 auto",padding:"0 20px 32px"};
+  const body={maxWidth:460,margin:"0 auto",padding:"0 12px 32px"};
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if(!ready) return (
@@ -1100,21 +1097,27 @@ export default function App() {
       {/* ── T1 ─────────────────────────────────────────────── */}
       <Section label="T1 — Primary Strength" style={{marginTop:20}}>
         <Row sep={false} style={{paddingBottom:0}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <TierBadge tier="T1"/>
-              <span style={{fontSize:22,fontWeight:700,color:IOS.label,letterSpacing:-.3}}>{t1Name}</span>
-              {t1Name!==day.t1.name&&<span style={{fontSize:11,color:ACC,fontWeight:600,background:`${ACC}20`,borderRadius:6,padding:"2px 7px"}}>swapped</span>}
-            </div>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              {!isPreview&&<button className="ios-press" onClick={()=>openSwap(day.id,"t1")}
-                style={{fontSize:13,color:ACC,fontWeight:600,background:`${ACC}18`,borderRadius:8,padding:"5px 12px"}}>
-                Swap
-              </button>}
-              {!isPreview&&<TimerBtn secs={REST.T1_work} start={timer.start}/>}
-            </div>
+          {/* Row 1: badge + name */}
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:2}}>
+            <TierBadge tier="T1"/>
+            <span style={{fontSize:22,fontWeight:700,color:IOS.label,letterSpacing:-.3,flex:1,minWidth:0}}>
+              {t1Name}
+            </span>
+            {t1Name!==day.t1.name&&<span style={{fontSize:11,color:ACC,fontWeight:600,background:`${ACC}20`,borderRadius:6,padding:"2px 7px",flexShrink:0}}>swapped</span>}
           </div>
-          <div style={{fontSize:14,color:IOS.label3}}>{t1cfg.label} · +{inc1} lb/session</div>
+          {/* Row 2: stage info + actions */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+            <span style={{fontSize:14,color:IOS.label3}}>{t1cfg.label} · +{inc1} lb/session</span>
+            {!isPreview&&(
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <button className="ios-press" onClick={()=>openSwap(day.id,"t1")}
+                  style={{fontSize:13,color:ACC,fontWeight:600,background:`${ACC}18`,borderRadius:8,padding:"5px 12px"}}>
+                  Swap
+                </button>
+                <TimerBtn secs={REST.T1_work} start={timer.start}/>
+              </div>
+            )}
+          </div>
           <StageSegment stage={t1lift.stage} color={C1}/>
           <WeightDisplay value={t1lift.weight} color={C1}/>
           {!isPreview&&(
@@ -1179,21 +1182,27 @@ export default function App() {
       {/* ── T2 ─────────────────────────────────────────────── */}
       <Section label="T2 — Volume Compound">
         <Row sep={false}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <TierBadge tier="T2"/>
-              <span style={{fontSize:22,fontWeight:700,color:IOS.label,letterSpacing:-.3}}>{t2Name}</span>
-              {t2Name!==day.t2.name&&<span style={{fontSize:11,color:ACC,fontWeight:600,background:`${ACC}20`,borderRadius:6,padding:"2px 7px"}}>swapped</span>}
-            </div>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              {!isPreview&&<button className="ios-press" onClick={()=>openSwap(day.id,"t2")}
-                style={{fontSize:13,color:ACC,fontWeight:600,background:`${ACC}18`,borderRadius:8,padding:"5px 12px"}}>
-                Swap
-              </button>}
-              {!isPreview&&<TimerBtn secs={REST.T2} start={timer.start}/>}
-            </div>
+          {/* Row 1: badge + name */}
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:2}}>
+            <TierBadge tier="T2"/>
+            <span style={{fontSize:22,fontWeight:700,color:IOS.label,letterSpacing:-.3,flex:1,minWidth:0}}>
+              {t2Name}
+            </span>
+            {t2Name!==day.t2.name&&<span style={{fontSize:11,color:ACC,fontWeight:600,background:`${ACC}20`,borderRadius:6,padding:"2px 7px",flexShrink:0}}>swapped</span>}
           </div>
-          <div style={{fontSize:14,color:IOS.label3,marginBottom:2}}>{t2cfg.label} · No AMRAP · +5 lb/session</div>
+          {/* Row 2: stage info + actions */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+            <span style={{fontSize:14,color:IOS.label3}}>{t2cfg.label} · No AMRAP · +5 lb/session</span>
+            {!isPreview&&(
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <button className="ios-press" onClick={()=>openSwap(day.id,"t2")}
+                  style={{fontSize:13,color:ACC,fontWeight:600,background:`${ACC}18`,borderRadius:8,padding:"5px 12px"}}>
+                  Swap
+                </button>
+                <TimerBtn secs={REST.T2} start={timer.start}/>
+              </div>
+            )}
+          </div>
           <StageSegment stage={t2lift.stage} color={C2}/>
           <WeightDisplay value={t2lift.weight} color={C2}/>
           {!isPreview&&(
