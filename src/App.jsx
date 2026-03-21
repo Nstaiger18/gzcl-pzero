@@ -848,22 +848,28 @@ export default function App() {
 
         <Section label="T1 — Primary Lifts">
           {DAYS.map((d,i)=>{
-            const k=d.t1.name,cur=t1s[k]||{tm:135};
+            const activeName=slotName(d.id,"t1");
+            const isSwapped=activeName!==d.t1.name;
+            const cur=t1s[activeName]||{tm:135};
             const isLast=i===DAYS.length-1;
             return (
-              <Row key={k} sep={!isLast} style={{background:undefined}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <Row key={d.id} sep={!isLast}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
                   <div>
-                    <div style={{fontSize:17,fontWeight:600,color:IOS.label}}>{k}</div>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <div style={{fontSize:17,fontWeight:600,color:IOS.label}}>{activeName}</div>
+                      {isSwapped&&<span style={{fontSize:11,color:ACC,fontWeight:600,background:`${ACC}20`,borderRadius:6,padding:"2px 6px"}}>swapped</span>}
+                    </div>
+                    {isSwapped&&<div style={{fontSize:12,color:IOS.label3,marginTop:1}}>Default: {d.t1.name}</div>}
                     <div style={{fontSize:13,color:IOS.label3,marginTop:1}}>{d.label} · {d.isLower?"+10 lb":"+5 lb"}/session</div>
                   </div>
                   <div style={{textAlign:"right"}}>
                     <div style={{fontSize:11,color:IOS.label3}}>Start weight</div>
-                    <div style={{fontFamily:"ui-monospace,'SF Mono',monospace",fontSize:17,fontWeight:600,color:DA[d.id]}}>{r5((cur.tm||135)*.8,d.isLower?10:5)} lb</div>
+                    <div style={{fontFamily:"ui-monospace,'SF Mono',monospace",fontSize:17,fontWeight:600,color:ACC}}>{r5((cur.tm||135)*.8,d.isLower?10:5)} lb</div>
                   </div>
                 </div>
-                <Stepper val={cur.tm||135} inc={d.isLower?10:5} color={DA[d.id]}
-                  onChange={v=>setT1s(p=>({...p,[k]:{...p[k],tm:v,weight:r5(v*.8,d.isLower?10:5)}}))}/>
+                <Stepper val={cur.tm||135} inc={d.isLower?10:5} color={ACC}
+                  onChange={v=>setT1s(p=>({...p,[activeName]:{...p[activeName],tm:v,weight:r5(v*.8,d.isLower?10:5)}}))}/>
               </Row>
             );
           })}
@@ -871,22 +877,52 @@ export default function App() {
 
         <Section label="T2 — Volume Lifts">
           {DAYS.map((d,i)=>{
-            const k=d.t2.name,cur=t2s[k]||{tm:95};
+            const activeName=slotName(d.id,"t2");
+            const isSwapped=activeName!==d.t2.name;
+            const cur=t2s[activeName]||{tm:95};
             const isLast=i===DAYS.length-1;
             return (
-              <Row key={k} sep={!isLast}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <Row key={d.id} sep={!isLast}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
                   <div>
-                    <div style={{fontSize:17,fontWeight:600,color:IOS.label}}>{k}</div>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <div style={{fontSize:17,fontWeight:600,color:IOS.label}}>{activeName}</div>
+                      {isSwapped&&<span style={{fontSize:11,color:ACC,fontWeight:600,background:`${ACC}20`,borderRadius:6,padding:"2px 6px"}}>swapped</span>}
+                    </div>
+                    {isSwapped&&<div style={{fontSize:12,color:IOS.label3,marginTop:1}}>Default: {d.t2.name}</div>}
                     <div style={{fontSize:13,color:IOS.label3,marginTop:1}}>{d.label} · +5 lb/session</div>
                   </div>
                   <div style={{textAlign:"right"}}>
                     <div style={{fontSize:11,color:IOS.label3}}>Start weight</div>
-                    <div style={{fontFamily:"ui-monospace,'SF Mono',monospace",fontSize:17,fontWeight:600,color:C2}}>{r5((cur.tm||95)*.8)} lb</div>
+                    <div style={{fontFamily:"ui-monospace,'SF Mono',monospace",fontSize:17,fontWeight:600,color:ACC}}>{r5((cur.tm||95)*.8)} lb</div>
                   </div>
                 </div>
-                <Stepper val={cur.tm||95} inc={5} color={C2}
-                  onChange={v=>setT2s(p=>({...p,[k]:{...p[k],tm:v,weight:r5(v*.8)}}))}/>
+                <Stepper val={cur.tm||95} inc={5} color={ACC}
+                  onChange={v=>setT2s(p=>({...p,[activeName]:{...p[activeName],tm:v,weight:r5(v*.8)}}))}/>
+              </Row>
+            );
+          })}
+        </Section>
+
+        <Section label="T3 — Accessories (current)">
+          {DAYS.map((d,i)=>{
+            const isLast=i===DAYS.length-1;
+            return (
+              <Row key={d.id} sep={!isLast}>
+                <div style={{fontSize:13,color:IOS.label3,marginBottom:5}}>{d.label} · {d.theme}</div>
+                <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                  {d.t3.map((t,ei)=>{
+                    const activeName=slotName(d.id,"t3",ei);
+                    const isSwapped=activeName!==t.name;
+                    return (
+                      <div key={ei} style={{display:"flex",alignItems:"center",gap:8}}>
+                        <div style={{width:6,height:6,borderRadius:3,background:ACC,flexShrink:0}}/>
+                        <span style={{fontSize:15,color:IOS.label,flex:1}}>{activeName}</span>
+                        {isSwapped&&<span style={{fontSize:11,color:ACC,fontWeight:600,background:`${ACC}20`,borderRadius:6,padding:"2px 6px"}}>swapped</span>}
+                      </div>
+                    );
+                  })}
+                </div>
               </Row>
             );
           })}
