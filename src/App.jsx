@@ -420,13 +420,21 @@ function SwapSheet({ slotKey, currentName, defaultName, onSwap, onClose }) {
 
         {/* Header */}
         <div style={{padding:"8px 20px 16px",borderBottom:`0.5px solid ${IOS.sep}`}}>
-          <div style={{fontSize:13,color:IOS.label3,textTransform:"uppercase",letterSpacing:.5,marginBottom:2}}>
-            Swap Exercise
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+            <div>
+              <div style={{fontSize:13,color:IOS.label3,textTransform:"uppercase",letterSpacing:.5,marginBottom:2}}>
+                Swap Exercise
+              </div>
+              <div style={{fontSize:20,fontWeight:700,color:IOS.label}}>{defaultName}</div>
+              {currentName!==defaultName&&(
+                <div style={{fontSize:13,color:ACC,marginTop:4}}>Currently: {currentName}</div>
+              )}
+            </div>
+            <button className="ios-press" onClick={onClose}
+              style={{fontSize:17,color:ACC,fontWeight:400,padding:"4px 0 4px 16px",flexShrink:0}}>
+              Cancel
+            </button>
           </div>
-          <div style={{fontSize:20,fontWeight:700,color:IOS.label}}>{defaultName}</div>
-          {currentName!==defaultName&&(
-            <div style={{fontSize:13,color:ACC,marginTop:4}}>Currently: {currentName}</div>
-          )}
         </div>
 
         {/* Restore default */}
@@ -743,9 +751,38 @@ export default function App() {
   const handleSwap = (slotKey, newName) => {
     const ns = {...swaps, [slotKey]: newName};
     setSwaps(ns); sv("swaps", ns);
-    if (slotKey.includes(".t3.")) { setGsRounds(emptyRounds(day.t3.length)); setSets({}); }
-    if (slotKey.includes(".t1")) { setAmrap(""); setSets({}); }
-    if (slotKey.includes(".t2")) { setSets({}); }
+
+    // If this exercise has never been used, initialize it with a proper starting weight
+    // so the user sees a real number instead of the generic fallback
+    const [dayId, tier, idxStr] = slotKey.split(".");
+    const d = DAYS.find(d=>d.id===dayId);
+    const isLower = d?.isLower || false;
+
+    if (tier==="t1" && !t1s[newName]) {
+      // Inherit TM from the slot being replaced so start weight is proportional
+      const existingTM = t1lift.tm || DEF_T1TM[d.t1.name] || 135;
+      const inc = isLower ? 10 : 5;
+      const startW = r5(existingTM * 0.8, inc);
+      const nt = {...t1s, [newName]:{weight:startW, stage:0, lastAmrap:null, tm:existingTM, stageWeights:[null,null,null]}};
+      setT1s(nt); sv("t1s", nt);
+    }
+    if (tier==="t2" && !t2s[newName]) {
+      const existingTM = t2lift.tm || DEF_T2TM[d.t2.name] || 95;
+      const startW = r5(existingTM * 0.8);
+      const nt = {...t2s, [newName]:{weight:startW, stage:0, tm:existingTM, stageWeights:[null,null,null]}};
+      setT2s(nt); sv("t2s", nt);
+    }
+    if (tier==="t3") {
+      const ei = parseInt(idxStr)||0;
+      if (!t3s[newName]) {
+        const startW = DEF_T3W[newName] || t3s[slotName(dayId,"t3",ei)]?.weight || 40;
+        const nt = {...t3s, [newName]:{weight:startW, stage:0, lastSets:null, stageWeights:[null,null,null]}};
+        setT3s(nt); sv("t3s", nt);
+      }
+      setGsRounds(emptyRounds(d.t3.length)); setSets({});
+    }
+    if (tier==="t1") { setAmrap(""); setSets({}); }
+    if (tier==="t2") { setSets({}); }
   };
 
   const openSwap = (dayId, tier, idx=null) => {
